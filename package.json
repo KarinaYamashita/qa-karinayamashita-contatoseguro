@@ -1,0 +1,16 @@
+{
+  "name": "qa-karinayamashita-contatoseguro",
+  "version": "1.0.0",
+  "description": "Testes e2e para o formulario de cadastro",
+  "main": "index.js",
+  "scripts": {
+    "test": "cypress open",
+    "report": "cypress run --reporter mochawesome   --reporter-options reportDir=\"cypress/results\",overwrite=true,html=true,json=true"
+  },
+  "author": "Karina Yamashita",
+  "license": "MIT",
+  "dependencies": {
+    "cypress": "^13.15.0",
+    "mochawesome": "^7.1.3"
+  }
+}
