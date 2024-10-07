@@ -10,8 +10,11 @@ class UserCRUD {
         cy.contains(text.titleSignupForm);
     }
 
-    fillForm(text){
+    openSignUpForm(){
         cy.get(element.createUserBtn).click();
+    }
+
+    fillForm(text){
         cy.get(form.nameLocator).type(userInfo.name);
         cy.get(form.mailLocator).type(userInfo.mail);
         cy.get(form.phoneLocator).type(userInfo.phone);
@@ -29,14 +32,39 @@ class UserCRUD {
         .and('contain', userInfo.mail)
     }
 
+    validateReadUserData(){
+        cy.get(element.userTable)
+        .last()
+        .contains(userInfo.name)        
+        .should('be.visible')
+    }
+
+    validateReadAllUserData(){
+        cy.get(element.userTable)       
+        .should('be.visible')
+    }
+
     openUpdateModal(){
         cy.get(element.editUserBtn).should('be.visible')
-        .last
-        ().click()
+        .last()
+        .click()
     }
 
     validateUpdateFormIsShowed(){
-        cy.contains(text.titleUpdateForm)
+        cy.contains(text.titleUpdateForm);
+    }
+
+    clickAtDeleteBtn() {
+        cy.get(element.userTable).contains(userInfo.name)
+        .parent('tr')
+        .find(element.deleteUserBtn).click();
+    }
+    validateDeleteUser(){
+        cy.contains(text.msgSuccessDeleteUser);
+        cy.get(element.closeMsgBtn).should('be.visible').
+        click()
+        cy.get(element.userTable).contains(userInfo.name)
+        .should('not.be.visible')
     }
 }
 

@@ -2,7 +2,8 @@ export const ELEMENTS = {
     createUserBtn : 'button[id="new-user"]',
     userTable : 'table > tbody',
     editUserBtn : 'tr > td:nth-child(7) > button:nth-child(1)',
-    deleteUserBtn : 'tr > td:nth-child(7) > button:nth-child(2)'
+    deleteUserBtn : 'td:nth-child(7) > button:nth-child(2)',
+    closeMsgBtn : 'div > div.swal2-actions > button.swal2-confirm.swal2-styled'
 }
 
 export const FORM = {
