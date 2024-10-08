@@ -1,6 +1,6 @@
 # [QA] Teste técnico Contato Seguro - Karina Yamashita :clipboard:
 
-Esse repositório contém uma aplicação para testes e2e, do fluxo de CRUD do usuário na tela de cadastro, para o teste técnico da empresa Contato Seguro. A automação dos testes foi realizada utilizando como linguagem de programação Javascript e POM( page Object Model).
+Esse repositório contém uma aplicação para testes e2e, do fluxo de CRUD do usuário na tela de cadastro, para o teste técnico da empresa Contato Seguro. A automação dos testes foi realizada utilizando como linguagem de programação Javascript e POM( page Object Model). Em um diretório a parte encontra-se os testes de API para o CRUD de usuário e empresa, pasta postman. Para visualizar o report dos testes realizados no postman acesse aqui: **[report-API-test](https://karinayamashita.github.io/qa-karinayamashita-contatoseguro/)** 
 
 ## Estrutura
 
