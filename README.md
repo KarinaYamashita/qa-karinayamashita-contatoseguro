@@ -6,12 +6,14 @@ Esse repositório contém uma aplicação para testes e2e, do fluxo de CRUD do u
 
 Para o desenvolvimento deste projeto a estrutura de diretórios é:
 
-- support/data: diretório responsável por armazenar os arquivos dos objetos dos dados no cadastro do usuário e dos textos exibidos na tela ou mensagens de retorno.
+- cypress/support/data: diretório responsável por armazenar os arquivos dos objetos dos dados no cadastro do usuário e dos textos exibidos na tela ou mensagens de retorno.
 - support/elements: diretório responsável por armazenar os arquivos dos objetos que contém o mapeamento dos elementos da aplicação.
 
-- support/pageObjects: diretório que contém as classes, nas quais são armazenados os métodos e asserções empregados.
+- cypress/support/pageObjects: diretório que contém as classes, nas quais são armazenados os métodos e asserções empregados.
 
-- e2e: diretório responsável por armazenar os arquivos de testes para cada uma das funcionalidades testadas.
+- cypress/e2e: diretório responsável por armazenar os arquivos de testes para cada uma das funcionalidades testadas.
+
+- postman: diretório responsável por armazenar os arquivos de testes criados para os Testes de API com o Postman.
 
 ## Pré-requisitos:
 
@@ -35,6 +37,12 @@ Utilizando o Terminal/Console:
 4. Execute o comando: `npm run test`(exibe a interface de teste do cypress) ou `npm run report`(realiza os testes headless e gera o report dos test)
 
 ![alt text](/imagesReadMe/image-1.png)
+
+Utilizando o terminal/Console para os teste de API:
+ 1. Acessar a pasta postman, via linha de comando ou abrindo o terminal na página
+
+ 2. Execute o comando `newman run ContatoSeguro.postman_collection.json -e contatoSeguro.postman_environment.json -r htmlextra`
+
 
 ## Gerando report
 Para gerar o report no formato exibido na imagem abaixo. Insira os seguites comandos no terminal:
