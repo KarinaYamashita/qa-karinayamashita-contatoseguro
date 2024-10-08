@@ -38,12 +38,10 @@ Utilizando o Terminal/Console:
 
 ## Gerando report
 Para gerar o report no formato exibido na imagem abaixo. Insira os seguites comandos no terminal:
-1. npm i mochawesome-merge
 
-2. npx mochawesome-merge "cypress/results/*.json" > mochawesome.json
+1. npx mochawesome-merge "cypress/results/*.json" > mochawesome.json
 
-3. npx marge mochawesome.json
-
+2. npx marge mochawesome.json
 ![alt text](/imagesReadMe/prettyReport.png)
 
 Referência utilizada: https://docs.cypress.io/guides/tooling/reporters#Reporter-Options
