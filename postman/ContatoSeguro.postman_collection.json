@@ -1,0 +1,1904 @@
+{
+	"info": {
+		"_postman_id": "4145494d-e76b-440e-a873-fe56fe262d5f",
+		"name": "ContatoSeguro",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20955981"
+	},
+	"item": [
+		{
+			"name": "Company",
+			"item": [
+				{
+					"name": "CreateNewCompany",
+					"item": [
+						{
+							"name": "SignupCompany",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Successful POST request\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([201, 202]);",
+											"});",
+											"",
+											"pm.test(\"Response time is less than 200ms\", function () {",
+											"    pm.expect(pm.response.responseTime).to.be.below(200);",
+											"});",
+											"",
+											"const response = pm.response.json();",
+											"pm.test(\"Validate user there are ID\", function () {",
+											"    pm.expect(response.id).to.exist;",
+											"});",
+											"",
+											"const schema = {",
+											"  \"type\": \"object\",",
+											"  \"properties\": {",
+											"    \"id\": {",
+											"      \"type\": \"string\"",
+											"    }",
+											"  },",
+											"  \"required\": [",
+											"    \"id\"",
+											"  ]",
+											"}",
+											"",
+											"pm.test(\"Schema is valid\", function () {",
+											"    pm.expect(pm.response.json()).to.have.jsonSchema(schema);",
+											"})",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Empresa Teste\",\n    \"cnpj\": \"37386662000151\",\n    \"adress\": {\n        \"cep\": \"95500000\",\n        \"country\": \"Brasil\",\n        \"state\": \"RS\",\n        \"city\": \"Porto Alegre\",\n        \"street\": \"Rua General Mostarda\",\n        \"number\": \"10\",\n        \"district\": \"Menino Deus\"\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/api/company/create",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"company",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "SignupCompanyFail",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Fail request\", function () {",
+											"    pm.response.to.have.status(400);",
+											"});",
+											"",
+											"pm.test(\"Validate message when body is not correct\", function(){",
+											"    pm.expect(pm.response.json().message).to.eql(pm.environment.get('msgInputRequired'));",
+											"})"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Empresa Teste\",\n    \"adress\": {\n        \"cep\": \"95500000\",\n        \"country\": \"Brasil\",\n        \"state\": \"RS\",\n        \"city\": \"Porto Alegre\",\n        \"street\": \"RuaGeneral Mostarda\",\n        \"number\": \"10\",\n        \"district\": \"Menino Deus\"\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/api/company/create",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"company",
+										"create"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "ReadCompanyInfo",
+					"item": [
+						{
+							"name": "getCompanyById",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.environment.set(\"CompanyName\", pm.variables.replaceIn('{{$randomCompanyName}}'));",
+											"",
+											"function gerarCNPJ() {",
+											"    // Gera os 12 primeiros dígitos aleatoriamente",
+											"    let numeros = Array(12).fill(0).map(() => Math.floor(Math.random() * 10));",
+											"",
+											"    // Função auxiliar para calcular o dígito verificador",
+											"    function calcularDigitoVerificador(numeros) {",
+											"        let total = 0;",
+											"        let pesos = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];",
+											"",
+											"        for (let i = 0; i < numeros.length; i++) {",
+											"            total += numeros[i] * pesos[i];",
+											"        }",
+											"",
+											"        let resto = (total % 11);",
+											"        return resto < 2 ? 0 : 11 - resto;",
+											"    }",
+											"",
+											"    // Calcula o primeiro dígito verificador e adiciona ao array",
+											"    let digito1 = calcularDigitoVerificador(numeros);",
+											"    numeros.push(digito1);",
+											"",
+											"    // Calcula o segundo dígito verificador e adiciona ao array",
+											"    let digito2 = calcularDigitoVerificador(numeros);",
+											"    numeros.push(digito2);",
+											"",
+											"    // Formata o CNPJ com pontos e hífen",
+											"    return numeros.slice(0, 2).join('') +",
+											"         numeros.slice(2, 5).join('')  +",
+											"         numeros.slice(5, 8).join('')  +",
+											"         numeros.slice(8, 12).join('');",
+											"}",
+											"",
+											"pm.environment.set(\"CNPJ\", gerarCNPJ());",
+											"pm.environment.set(\"country\", pm.variables.replaceIn('{{$randomCountry}}'));",
+											"",
+											"",
+											"function selecionaEstado() {",
+											"    const estadosSiglas = [\"AC\", \"AL\", \"AP\", \"AM\", \"BA\", \"CE\", \"DF\", \"ES\", \"GO\", \"MA\", \"MT\", \"MS\", \"MG\", \"PA\", \"PB\", \"PR\", \"PE\", \"PI\", \"RJ\", \"RN\", \"RS\", \"RO\", \"RR\", \"SC\", \"SE\", \"SP\", \"TO\"];",
+											"    let randomState = estadosSiglas[Math.floor(Math.random() * estadosSiglas.length)];",
+											"    return randomState",
+											"}",
+											"",
+											"pm.environment.set(\"state\", selecionaEstado());",
+											"pm.environment.set(\"city\", pm.variables.replaceIn('{{$randomCity}}'));",
+											"pm.environment.set(\"street\", \"Rua \" + pm.variables.replaceIn('{{$randomStreetName}}'));",
+											"",
+											"const url = pm.environment.get(\"URL\") + \"/api/company/create\";",
+											"const options = {",
+											"    url: url,",
+											"    method: 'POST',",
+											"    header: {",
+											"        'Content-type': 'application/json',",
+											"        'Accept': '*/*'",
+											"    },",
+											"    body: {",
+											"        mode: 'application/json',",
+											"        raw: JSON.stringify({",
+											"            \"name\": pm.environment.get(\"CompanyName\"),",
+											"            \"cnpj\": pm.environment.get(\"CNPJ\"),",
+											"            \"adress\": {",
+											"                \"cep\": \"95500000\",",
+											"                \"country\": pm.environment.get(\"country\"),",
+											"                \"state\": pm.environment.get(\"state\"),",
+											"                \"city\": pm.environment.get(\"city\"),",
+											"                \"street\": pm.environment.get(\"street\"),",
+											"                \"number\": \"180\",",
+											"                \"district\": \"Bairro\"",
+											"            }",
+											"        })",
+											"",
+											"    }",
+											"}",
+											"pm.sendRequest(options, (err, response) => {",
+											"    if (err) {",
+											"        console.error(\"Error getting user data:\", err);",
+											"    } else {",
+											"        pm.environment.set(\"idCompany\", response.json().id);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/company/{{idCompany}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"company",
+										"{{idCompany}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getCompanyByIdFail",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.environment.set(\"CompanyName\", pm.variables.replaceIn('{{$randomCompanyName}}'));",
+											"",
+											"function gerarCNPJ() {",
+											"    // Gera os 12 primeiros dígitos aleatoriamente",
+											"    let numeros = Array(12).fill(0).map(() => Math.floor(Math.random() * 10));",
+											"",
+											"    // Função auxiliar para calcular o dígito verificador",
+											"    function calcularDigitoVerificador(numeros) {",
+											"        let total = 0;",
+											"        let pesos = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];",
+											"",
+											"        for (let i = 0; i < numeros.length; i++) {",
+											"            total += numeros[i] * pesos[i];",
+											"        }",
+											"",
+											"        let resto = (total % 11);",
+											"        return resto < 2 ? 0 : 11 - resto;",
+											"    }",
+											"",
+											"    // Calcula o primeiro dígito verificador e adiciona ao array",
+											"    let digito1 = calcularDigitoVerificador(numeros);",
+											"    numeros.push(digito1);",
+											"",
+											"    // Calcula o segundo dígito verificador e adiciona ao array",
+											"    let digito2 = calcularDigitoVerificador(numeros);",
+											"    numeros.push(digito2);",
+											"",
+											"    // Formata o CNPJ com pontos e hífen",
+											"    return numeros.slice(0, 2).join('') +",
+											"         numeros.slice(2, 5).join('')  +",
+											"         numeros.slice(5, 8).join('')  +",
+											"         numeros.slice(8, 12).join('');",
+											"}",
+											"",
+											"pm.environment.set(\"CNPJ\", gerarCNPJ());",
+											"pm.environment.set(\"country\", pm.variables.replaceIn('{{$randomCountry}}'));",
+											"",
+											"",
+											"function selecionaEstado() {",
+											"    const estadosSiglas = [\"AC\", \"AL\", \"AP\", \"AM\", \"BA\", \"CE\", \"DF\", \"ES\", \"GO\", \"MA\", \"MT\", \"MS\", \"MG\", \"PA\", \"PB\", \"PR\", \"PE\", \"PI\", \"RJ\", \"RN\", \"RS\", \"RO\", \"RR\", \"SC\", \"SE\", \"SP\", \"TO\"];",
+											"    let randomState = estadosSiglas[Math.floor(Math.random() * estadosSiglas.length)];",
+											"    return randomState",
+											"}",
+											"",
+											"pm.environment.set(\"state\", selecionaEstado());",
+											"pm.environment.set(\"city\", pm.variables.replaceIn('{{$randomCity}}'));",
+											"pm.environment.set(\"street\", \"Rua \" + pm.variables.replaceIn('{{$randomStreetName}}'));",
+											"",
+											"const url = pm.environment.get(\"URL\") + \"/api/company/create\";",
+											"const options = {",
+											"    url: url,",
+											"    method: 'POST',",
+											"    header: {",
+											"        'Content-type': 'application/json',",
+											"        'Accept': '*/*'",
+											"    },",
+											"    body: {",
+											"        mode: 'application/json',",
+											"        raw: JSON.stringify({",
+											"            \"name\": pm.environment.get(\"CompanyName\"),",
+											"            \"cnpj\": pm.environment.get(\"CNPJ\"),",
+											"            \"adress\": {",
+											"                \"cep\": \"95500000\",",
+											"                \"country\": pm.environment.get(\"country\"),",
+											"                \"state\": pm.environment.get(\"state\"),",
+											"                \"city\": pm.environment.get(\"city\"),",
+											"                \"street\": pm.environment.get(\"street\"),",
+											"                \"number\": \"180\",",
+											"                \"district\": \"Bairro\"",
+											"            }",
+											"        })",
+											"",
+											"    }",
+											"}",
+											"pm.sendRequest(options, (err, response) => {",
+											"    if (err) {",
+											"        console.error(\"Error getting user data:\", err);",
+											"    } else {",
+											"        pm.environment.set(\"idCompany\", response.json().id);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Fail request\", function () {",
+											"    pm.response.to.have.status(400);",
+											"});",
+											"",
+											"pm.test(\"Validate message when body is not correct\", function(){",
+											"    pm.expect(pm.response.json().message).to.eql(pm.environment.get('msgInvalidRequest'));",
+											"})"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/company/70000000",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"company",
+										"70000000"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getCompanyList",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/company",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"company"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "UpdateCompanyByID",
+					"item": [
+						{
+							"name": "UpdateCompany",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.environment.set(\"CompanyName\", pm.variables.replaceIn('{{$randomCompanyName}}'));",
+											"",
+											"function gerarCNPJ() {",
+											"    // Gera os 12 primeiros dígitos aleatoriamente",
+											"    let numeros = Array(12).fill(0).map(() => Math.floor(Math.random() * 10));",
+											"",
+											"    // Função auxiliar para calcular o dígito verificador",
+											"    function calcularDigitoVerificador(numeros) {",
+											"        let total = 0;",
+											"        let pesos = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];",
+											"",
+											"        for (let i = 0; i < numeros.length; i++) {",
+											"            total += numeros[i] * pesos[i];",
+											"        }",
+											"",
+											"        let resto = (total % 11);",
+											"        return resto < 2 ? 0 : 11 - resto;",
+											"    }",
+											"",
+											"    // Calcula o primeiro dígito verificador e adiciona ao array",
+											"    let digito1 = calcularDigitoVerificador(numeros);",
+											"    numeros.push(digito1);",
+											"",
+											"    // Calcula o segundo dígito verificador e adiciona ao array",
+											"    let digito2 = calcularDigitoVerificador(numeros);",
+											"    numeros.push(digito2);",
+											"",
+											"    // Formata o CNPJ com pontos e hífen",
+											"    return numeros.slice(0, 2).join('') +",
+											"         numeros.slice(2, 5).join('')  +",
+											"         numeros.slice(5, 8).join('')  +",
+											"         numeros.slice(8, 12).join('');",
+											"}",
+											"",
+											"pm.environment.set(\"CNPJ\", gerarCNPJ());",
+											"pm.environment.set(\"country\", pm.variables.replaceIn('{{$randomCountry}}'));",
+											"",
+											"",
+											"function selecionaEstado() {",
+											"    const estadosSiglas = [\"AC\", \"AL\", \"AP\", \"AM\", \"BA\", \"CE\", \"DF\", \"ES\", \"GO\", \"MA\", \"MT\", \"MS\", \"MG\", \"PA\", \"PB\", \"PR\", \"PE\", \"PI\", \"RJ\", \"RN\", \"RS\", \"RO\", \"RR\", \"SC\", \"SE\", \"SP\", \"TO\"];",
+											"    let randomState = estadosSiglas[Math.floor(Math.random() * estadosSiglas.length)];",
+											"    return randomState",
+											"}",
+											"",
+											"pm.environment.set(\"state\", selecionaEstado());",
+											"pm.environment.set(\"city\", pm.variables.replaceIn('{{$randomCity}}'));",
+											"pm.environment.set(\"street\", \"Rua \" + pm.variables.replaceIn('{{$randomStreetName}}'));",
+											"",
+											"const url = pm.environment.get(\"URL\") + \"/api/company/create\";",
+											"const options = {",
+											"    url: url,",
+											"    method: 'POST',",
+											"    header: {",
+											"        'Content-type': 'application/json',",
+											"        'Accept': '*/*'",
+											"    },",
+											"    body: {",
+											"        mode: 'application/json',",
+											"        raw: JSON.stringify({",
+											"            \"name\": pm.environment.get(\"CompanyName\"),",
+											"            \"cnpj\": pm.environment.get(\"CNPJ\"),",
+											"            \"adress\": {",
+											"                \"cep\": \"95500000\",",
+											"                \"country\": pm.environment.get(\"country\"),",
+											"                \"state\": pm.environment.get(\"state\"),",
+											"                \"city\": pm.environment.get(\"city\"),",
+											"                \"street\": pm.environment.get(\"street\"),",
+											"                \"number\": \"180\",",
+											"                \"district\": \"Bairro\"",
+											"            }",
+											"        })",
+											"",
+											"    }",
+											"}",
+											"pm.sendRequest(options, (err, response) => {",
+											"    if (err) {",
+											"        console.error(\"Error getting user data:\", err);",
+											"    } else {",
+											"        pm.environment.set(\"idCompanyUpdate\", response.json().id);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": " {\n    \"name\": \"Empresa Teste\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/api/company/{{idCompany}}/update",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"company",
+										"{{idCompany}}",
+										"update"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "DeleteCompany",
+					"item": [
+						{
+							"name": "deleteCompany",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.environment.set(\"CompanyName\", pm.variables.replaceIn('{{$randomCompanyName}}'));",
+											"",
+											"function gerarCNPJ() {",
+											"    // Gera os 12 primeiros dígitos aleatoriamente",
+											"    let numeros = Array(12).fill(0).map(() => Math.floor(Math.random() * 10));",
+											"",
+											"    // Função auxiliar para calcular o dígito verificador",
+											"    function calcularDigitoVerificador(numeros) {",
+											"        let total = 0;",
+											"        let pesos = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];",
+											"",
+											"        for (let i = 0; i < numeros.length; i++) {",
+											"            total += numeros[i] * pesos[i];",
+											"        }",
+											"",
+											"        let resto = (total % 11);",
+											"        return resto < 2 ? 0 : 11 - resto;",
+											"    }",
+											"",
+											"    // Calcula o primeiro dígito verificador e adiciona ao array",
+											"    let digito1 = calcularDigitoVerificador(numeros);",
+											"    numeros.push(digito1);",
+											"",
+											"    // Calcula o segundo dígito verificador e adiciona ao array",
+											"    let digito2 = calcularDigitoVerificador(numeros);",
+											"    numeros.push(digito2);",
+											"",
+											"    // Formata o CNPJ com pontos e hífen",
+											"    return numeros.slice(0, 2).join('') +",
+											"         numeros.slice(2, 5).join('')  +",
+											"         numeros.slice(5, 8).join('')  +",
+											"         numeros.slice(8, 12).join('');",
+											"}",
+											"",
+											"pm.environment.set(\"CNPJ\", gerarCNPJ());",
+											"pm.environment.set(\"country\", pm.variables.replaceIn('{{$randomCountry}}'));",
+											"",
+											"",
+											"function selecionaEstado() {",
+											"    const estadosSiglas = [\"AC\", \"AL\", \"AP\", \"AM\", \"BA\", \"CE\", \"DF\", \"ES\", \"GO\", \"MA\", \"MT\", \"MS\", \"MG\", \"PA\", \"PB\", \"PR\", \"PE\", \"PI\", \"RJ\", \"RN\", \"RS\", \"RO\", \"RR\", \"SC\", \"SE\", \"SP\", \"TO\"];",
+											"    let randomState = estadosSiglas[Math.floor(Math.random() * estadosSiglas.length)];",
+											"    return randomState",
+											"}",
+											"",
+											"pm.environment.set(\"state\", selecionaEstado());",
+											"pm.environment.set(\"city\", pm.variables.replaceIn('{{$randomCity}}'));",
+											"pm.environment.set(\"street\", \"Rua \" + pm.variables.replaceIn('{{$randomStreetName}}'));",
+											"",
+											"const url = pm.environment.get(\"URL\") + \"/api/company/create\";",
+											"const options = {",
+											"    url: url,",
+											"    method: 'POST',",
+											"    header: {",
+											"        'Content-type': 'application/json',",
+											"        'Accept': '*/*'",
+											"    },",
+											"    body: {",
+											"        mode: 'application/json',",
+											"        raw: JSON.stringify({",
+											"            \"name\": pm.environment.get(\"CompanyName\"),",
+											"            \"cnpj\": pm.environment.get(\"CNPJ\"),",
+											"            \"adress\": {",
+											"                \"cep\": \"95500000\",",
+											"                \"country\": pm.environment.get(\"country\"),",
+											"                \"state\": pm.environment.get(\"state\"),",
+											"                \"city\": pm.environment.get(\"city\"),",
+											"                \"street\": pm.environment.get(\"street\"),",
+											"                \"number\": \"180\",",
+											"                \"district\": \"Bairro\"",
+											"            }",
+											"        })",
+											"",
+											"    }",
+											"}",
+											"pm.sendRequest(options, (err, response) => {",
+											"    if (err) {",
+											"        console.error(\"Error getting user data:\", err);",
+											"    } else {",
+											"        pm.environment.set(\"idCompanyDelete\", response.json().id);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response time is less than 200ms\", function () {",
+											"    pm.expect(pm.response.responseTime).to.be.below(200);",
+											"});",
+											"",
+											"const response = pm.response.json();",
+											"pm.test(\"Validate response have message success delete\", function () {",
+											"    pm.expect(pm.environment.get(\"msgDeleteSuccess\")).to.eql(response.message);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/api/company/1/delete",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"company",
+										"1",
+										"delete"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "deleteCompanyByIdFail",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.environment.set(\"CompanyName\", pm.variables.replaceIn('{{$randomCompanyName}}'));",
+											"",
+											"function gerarCNPJ() {",
+											"    // Gera os 12 primeiros dígitos aleatoriamente",
+											"    let numeros = Array(12).fill(0).map(() => Math.floor(Math.random() * 10));",
+											"",
+											"    // Função auxiliar para calcular o dígito verificador",
+											"    function calcularDigitoVerificador(numeros) {",
+											"        let total = 0;",
+											"        let pesos = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];",
+											"",
+											"        for (let i = 0; i < numeros.length; i++) {",
+											"            total += numeros[i] * pesos[i];",
+											"        }",
+											"",
+											"        let resto = (total % 11);",
+											"        return resto < 2 ? 0 : 11 - resto;",
+											"    }",
+											"",
+											"    // Calcula o primeiro dígito verificador e adiciona ao array",
+											"    let digito1 = calcularDigitoVerificador(numeros);",
+											"    numeros.push(digito1);",
+											"",
+											"    // Calcula o segundo dígito verificador e adiciona ao array",
+											"    let digito2 = calcularDigitoVerificador(numeros);",
+											"    numeros.push(digito2);",
+											"",
+											"    // Formata o CNPJ com pontos e hífen",
+											"    return numeros.slice(0, 2).join('') +",
+											"         numeros.slice(2, 5).join('')  +",
+											"         numeros.slice(5, 8).join('')  +",
+											"         numeros.slice(8, 12).join('');",
+											"}",
+											"",
+											"pm.environment.set(\"CNPJ\", gerarCNPJ());",
+											"pm.environment.set(\"country\", pm.variables.replaceIn('{{$randomCountry}}'));",
+											"",
+											"",
+											"function selecionaEstado() {",
+											"    const estadosSiglas = [\"AC\", \"AL\", \"AP\", \"AM\", \"BA\", \"CE\", \"DF\", \"ES\", \"GO\", \"MA\", \"MT\", \"MS\", \"MG\", \"PA\", \"PB\", \"PR\", \"PE\", \"PI\", \"RJ\", \"RN\", \"RS\", \"RO\", \"RR\", \"SC\", \"SE\", \"SP\", \"TO\"];",
+											"    let randomState = estadosSiglas[Math.floor(Math.random() * estadosSiglas.length)];",
+											"    return randomState",
+											"}",
+											"",
+											"pm.environment.set(\"state\", selecionaEstado());",
+											"pm.environment.set(\"city\", pm.variables.replaceIn('{{$randomCity}}'));",
+											"pm.environment.set(\"street\", \"Rua \" + pm.variables.replaceIn('{{$randomStreetName}}'));",
+											"",
+											"const url = pm.environment.get(\"URL\") + \"/api/company/create\";",
+											"const options = {",
+											"    url: url,",
+											"    method: 'POST',",
+											"    header: {",
+											"        'Content-type': 'application/json',",
+											"        'Accept': '*/*'",
+											"    },",
+											"    body: {",
+											"        mode: 'application/json',",
+											"        raw: JSON.stringify({",
+											"            \"name\": pm.environment.get(\"CompanyName\"),",
+											"            \"cnpj\": pm.environment.get(\"CNPJ\"),",
+											"            \"adress\": {",
+											"                \"cep\": \"95500000\",",
+											"                \"country\": pm.environment.get(\"country\"),",
+											"                \"state\": pm.environment.get(\"state\"),",
+											"                \"city\": pm.environment.get(\"city\"),",
+											"                \"street\": pm.environment.get(\"street\"),",
+											"                \"number\": \"180\",",
+											"                \"district\": \"Bairro\"",
+											"            }",
+											"        })",
+											"",
+											"    }",
+											"}",
+											"pm.sendRequest(options, (err, response) => {",
+											"    if (err) {",
+											"        console.error(\"Error getting user data:\", err);",
+											"    } else {",
+											"        pm.environment.set(\"idCompanyDelete\", response.json().id);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Fail request\", function () {",
+											"    pm.response.to.have.status(400);",
+											"});",
+											"",
+											"pm.test(\"Validate message when body is not correct\", function(){",
+											"    pm.expect(pm.response.json().message).to.eql(pm.environment.get('msgDeleteFail'));",
+											"})"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/api/company/1000000000/delete",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"company",
+										"1000000000",
+										"delete"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "CreateNewUser",
+					"item": [
+						{
+							"name": "signUp-success",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Successful POST request\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([201, 202]);",
+											"});",
+											"",
+											"pm.test(\"Response time is less than 200ms\", function () {",
+											"    pm.expect(pm.response.responseTime).to.be.below(200);",
+											"});",
+											"",
+											"const response = pm.response.json();",
+											"pm.test(\"Validate user there are ID\", function () {",
+											"    pm.expect(response.id_user).to.exist;",
+											"});",
+											"",
+											"pm.test(\"Check is mail true\", function () {",
+											"    pm.expect(\"julia.silva@outlook.com\").to.eql(response.email);",
+											"});",
+											"",
+											"const schema = {",
+											"  \"type\": \"object\",",
+											"  \"properties\": {",
+											"    \"id_user\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"name\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"email\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"telephone\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"birth_date\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"birth_city\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"show\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"companies\": {",
+											"      \"type\": \"string\"",
+											"    }",
+											"  },",
+											"  \"required\": [",
+											"    \"id_user\",",
+											"    \"name\",",
+											"    \"email\",",
+											"    \"birth_date\",",
+											"    \"birth_city\",",
+											"    \"show\",",
+											"    \"companies\"",
+											"  ]",
+											"}",
+											"",
+											"pm.test(\"Schema is valid\", function () {",
+											"    pm.expect(pm.response.json()).to.have.jsonSchema(schema);",
+											"})",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Julia Silva\",\n    \"email\": \"julia.silva@outlook.com\", \n    \"telephone\": \"11999785241\", \n    \"birth_date\": \"1995-07-13\",\n    \"birth_city\": \"Curitiba\", \n    \"companies\": [1]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/api/user/create",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"user",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "signUp-usingNameWithNon-alphabeticCharacters",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Fail request\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([405, 400]);",
+											"});",
+											"",
+											"pm.test(\"Check msg don't use non-alphabetic characters at name.\", function(){",
+											"    pm.expect(pm.response.json().message).to.eql(pm.environment.get('msgInputRequired'));",
+											"})",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Julia22 S@ilva\",\n    \"email\": \"julia.silva@outlook.com\", \n    \"telephone\": \"11999785241\", \n    \"birth_date\": \"1995-07-13\",\n    \"birth_city\": \"Curitiba\", \n    \"companies\": [1]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/api/user/create",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"user",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "signUp-usingPhoneWithletters",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Fail request\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([405, 400]);",
+											"});",
+											"",
+											"pm.test(\"Check msg don't use alphabetic characters at phone\", function(){",
+											"    pm.expect(pm.response.json().message).to.eql(pm.environment.get('msgInputRequired'));",
+											"})",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Julia Silva\",\n    \"email\": \"julia.silva@outlook.com\", \n    \"telephone\": \"telefone1\", \n    \"birth_date\": \"1995-07-13\",\n    \"birth_city\": \"Curitiba\", \n    \"companies\": [1]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/api/user/create",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"user",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "signUp-companyIsRequired",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Fail request\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([405, 400]);",
+											"});",
+											"",
+											"pm.test(\"Check msg: Company is Required\", function(){",
+											"    pm.expect(pm.response.json().message).to.eql(pm.environment.get('msgInputRequired'));",
+											"})",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Juliana Silva\",\n    \"email\": \"juliana.silva@outlook.com\", \n    \"telephone\": \"11999785252\", \n    \"birth_date\": \"2000-07-13\",\n    \"birth_city\": \"Palma\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/api/user/create",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"user",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "signUp-birthDateIsRequired",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Fail request\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([405, 400]);",
+											"});",
+											"",
+											"pm.test(\"Check msg: Birth date is Required.\", function(){",
+											"    pm.expect(pm.response.json().message).to.eql(pm.environment.get('msgInputRequired'));",
+											"})",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Julia Silva\",\n    \"email\": \"julia.silva@outlook.com\", \n    \"telephone\": \"11999785241\", \n    \"birth_city\": \"Curitiba\", \n    \"companies\": [1]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/api/user/create",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"user",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "signUp-nameIsRequired",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Fail request\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([405, 400]);",
+											"});",
+											"",
+											"pm.test(\"Check msg:Name is Required\", function(){",
+											"    pm.expect(pm.response.json().message).to.eql(pm.environment.get('msgInputRequired'));",
+											"})",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"julia.silva@outlook.com\", \n    \"telephone\": \"11999785241\", \n    \"birth_date\": \"1995-07-13\",\n    \"birth_city\": \"Curitiba\", \n    \"companies\": [1]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/api/user/create",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"user",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "signUp-phoneIsRequired",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Fail request\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([405, 400]);",
+											"});",
+											"",
+											"pm.test(\"Check msg:Name is Required\", function(){",
+											"    pm.expect(pm.response.json().message).to.eql(pm.environment.get('msgInputRequired'));",
+											"})",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\" : \"Joana Prado\",\n    \"email\": \"joana.p@outlook.com\", \n    \"birth_date\": \"1995-07-13\",\n    \"birth_city\": \"Curitiba\", \n    \"companies\": [1]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/api/user/create",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"user",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "signUp-mailIsRequired",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Fail request\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([405, 400]);",
+											"});",
+											"",
+											"pm.test(\"Check msg: Mail is Required.\", function(){",
+											"    pm.expect(pm.response.json().message).to.eql(pm.environment.get('msgInputRequired'));",
+											"})",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nome\": \"Mariana Datena\", \n    \"telephone\": \"11999785241\", \n    \"birth_date\": \"1995-07-13\",\n    \"birth_city\": \"Curitiba\", \n    \"companies\": [1]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/api/user/create",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"user",
+										"create"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "ReadUserInfo",
+					"item": [
+						{
+							"name": "getUserList",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response time is less than 200ms\", function () {",
+											"    pm.expect(pm.response.responseTime).to.be.below(200);",
+											"});",
+											"",
+											"const response = pm.response.json();",
+											"pm.test(\"Validate response body is array\", function () {",
+											"    pm.expect(response).to.be.a('array');",
+											"});",
+											"",
+											"const schema = {",
+											"  \"type\": \"array\",",
+											"  \"properties\": {",
+											"    \"id_user\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"name\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"email\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"telephone\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"birth_date\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"birth_city\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"show\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"companies\": {",
+											"      \"type\": \"string\"",
+											"    }",
+											"  },",
+											"  \"required\": [",
+											"    \"id_user\",",
+											"    \"name\",",
+											"    \"email\",",
+											"    \"birth_date\",",
+											"    \"birth_city\",",
+											"    \"show\",",
+											"    \"companies\"",
+											"  ]",
+											"}",
+											"",
+											"pm.test(\"Schema is valid\", function () {",
+											"    pm.expect(pm.response.json()).to.have.jsonSchema(schema);",
+											"})"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/user",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"user"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getUserById",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"function firstName() {",
+											"    let firstName = [\"João\", \"Maria\", \"Paula\", \"Karla\", \"Julia\", \"Liza\", \"Mario\", \"Maisa\"];",
+											"    let randomItem = firstName[Math.floor(Math.random() * firstName.length)];",
+											"    return randomItem",
+											"}",
+											"pm.environment.set(\"FirstName\", firstName());",
+											"",
+											"function lastName() {",
+											"    let lastName = [\"Marins\", \"Silva\", \"Oliveira\", \"Santos\", \"de Deus\", \"Moura\", \"Martins\", \"Araujo\"];",
+											"    let randomItem = lastName[Math.floor(Math.random() * lastName.length)];",
+											"    return randomItem",
+											"}",
+											"pm.environment.set(\"LastName\", lastName());",
+											"",
+											"pm.environment.set(\"fullName\", pm.environment.get(\"FirstName\") + \" \" + pm.environment.get(\"LastName\"));",
+											"",
+											"",
+											"function providerMail() {",
+											"    let providerMail = [\"@gmail.com\", \"@yahoo.com.br\", \"@outlook.com\", \"@hotmail.com\", \"@dominio.com\"];",
+											"    let randomItem = providerMail[Math.floor(Math.random() * providerMail.length)];",
+											"    return randomItem",
+											"}",
+											"pm.environment.set(\"ProviderMail\", providerMail());",
+											"",
+											"pm.environment.set(\"Email\", pm.environment.get(\"FirstName\") + \".\" + pm.variables.replaceIn('{{$timestamp}}') + pm.environment.get(\"ProviderMail\"));",
+											"",
+											"const url = pm.environment.get(\"URL\") + \"/api/user/create\";",
+											"const options = {",
+											"    url: url,",
+											"    method: 'POST',",
+											"    header: {",
+											"        'Content-type': 'application/json',",
+											"        'Accept': '*/*'",
+											"    },",
+											"    body: {",
+											"        mode: 'application/json',",
+											"        raw: JSON.stringify({",
+											"            \"name\": pm.environment.get(\"fullName\"),",
+											"            \"email\": pm.environment.get(\"Email\"),",
+											"            \"telephone\": \"11999785241\",",
+											"            \"birth_date\": \"1995-07-13\",",
+											"            \"birth_city\": \"Curitiba\",",
+											"            \"companies\": [1]",
+											"        })",
+											"",
+											"    }",
+											"}",
+											"pm.sendRequest(options, (err, response) => {",
+											"    if (err) {",
+											"        console.error(\"Error getting user data:\", err);",
+											"    } else {",
+											"        pm.environment.set(\"id_user\", response.json().id_user);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response time is less than 200ms\", function () {",
+											"    pm.expect(pm.response.responseTime).to.be.below(200);",
+											"});",
+											"",
+											"const response = pm.response.json();",
+											"pm.test(\"Validate user there are ID and is correct\", function () {",
+											"    pm.expect(response.id_user).to.exist;",
+											"    pm.expect(response.id_user).to.be.eq(pm.environment.get(\"id_user\"))",
+											"});",
+											"",
+											"pm.test(\"Check is mail true\", function () {",
+											"    pm.expect(pm.environment.get(\"Email\")).to.eql(response.email);",
+											"});",
+											"",
+											"const schema = {",
+											"  \"type\": \"object\",",
+											"  \"properties\": {",
+											"    \"id_user\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"name\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"email\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"telephone\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"birth_date\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"birth_city\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"show\": {",
+											"      \"type\": \"string\"",
+											"    },",
+											"    \"companies\": {",
+											"      \"type\": \"string\"",
+											"    }",
+											"  },",
+											"  \"required\": [",
+											"    \"id_user\",",
+											"    \"name\",",
+											"    \"email\",",
+											"    \"birth_date\",",
+											"    \"birth_city\",",
+											"    \"show\",",
+											"    \"companies\"",
+											"  ]",
+											"}",
+											"",
+											"pm.test(\"Schema is valid\", function () {",
+											"    pm.expect(pm.response.json()).to.have.jsonSchema(schema);",
+											"})"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/user/{{id_user}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"user",
+										"{{id_user}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getUserByIdFail",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Fail request\", function () {",
+											"    pm.response.to.have.status(400);",
+											"});",
+											"",
+											"pm.test(\"Validate message when body is not correct\", function(){",
+											"    pm.expect(pm.response.json().message).to.eql(pm.environment.get('msgInvalidRequest'));",
+											"})"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/user/10000000000",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"user",
+										"10000000000"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "UpdateUser",
+					"item": [
+						{
+							"name": "updateUser",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"function firstName() {",
+											"    let firstName = [\"João\", \"Maria\", \"Paula\", \"Karla\", \"Julia\", \"Liza\", \"Mario\", \"Maisa\"];",
+											"    let randomItem = firstName[Math.floor(Math.random() * firstName.length)];",
+											"    return randomItem",
+											"}",
+											"pm.environment.set(\"FirstName\", firstName());",
+											"",
+											"function lastName() {",
+											"    let lastName = [\"Marins\", \"Silva\", \"Oliveira\", \"Santos\", \"de Deus\", \"Moura\", \"Martins\", \"Araujo\"];",
+											"    let randomItem = lastName[Math.floor(Math.random() * lastName.length)];",
+											"    return randomItem",
+											"}",
+											"pm.environment.set(\"LastName\", lastName());",
+											"",
+											"pm.environment.set(\"fullName\", pm.environment.get(\"FirstName\") + \" \" + pm.environment.get(\"LastName\"));",
+											"",
+											"",
+											"function providerMail() {",
+											"    let providerMail = [\"@gmail.com\", \"@yahoo.com.br\", \"@outlook.com\", \"@hotmail.com\", \"@dominio.com\"];",
+											"    let randomItem = providerMail[Math.floor(Math.random() * providerMail.length)];",
+											"    return randomItem",
+											"}",
+											"pm.environment.set(\"ProviderMail\", providerMail());",
+											"",
+											"pm.environment.set(\"Email\", pm.environment.get(\"FirstName\") + \".\" + pm.variables.replaceIn('{{$timestamp}}') + pm.environment.get(\"ProviderMail\"));",
+											"",
+											"const url = pm.environment.get(\"URL\") + \"/api/user/create\";",
+											"const options = {",
+											"    url: url,",
+											"    method: 'POST',",
+											"    header: {",
+											"        'Content-type': 'application/json',",
+											"        'Accept': '*/*'",
+											"    },",
+											"    body: {",
+											"        mode: 'application/json',",
+											"        raw: JSON.stringify({",
+											"            \"name\": pm.environment.get(\"fullName\"),",
+											"            \"email\": pm.environment.get(\"Email\"),",
+											"            \"telephone\": \"11999785241\",",
+											"            \"birth_date\": \"1995-07-13\",",
+											"            \"birth_city\": \"Curitiba\",",
+											"            \"companies\": [1]",
+											"        })",
+											"",
+											"    }",
+											"}",
+											"pm.sendRequest(options, (err, response) => {",
+											"    if (err) {",
+											"        console.error(\"Error getting user data:\", err);",
+											"    } else {",
+											"        pm.environment.set(\"id_user_update\", response.json().id_user);",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"David Moro\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/api/user/{{id_user_update}}/update",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"user",
+										"{{id_user_update}}",
+										"update"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "DeleteUser",
+					"item": [
+						{
+							"name": "deleteUser",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"function firstName() {",
+											"    let firstName = [\"João\", \"Maria\", \"Paula\", \"Karla\", \"Julia\", \"Liza\", \"Mario\", \"Maisa\"];",
+											"    let randomItem = firstName[Math.floor(Math.random() * firstName.length)];",
+											"    return randomItem",
+											"}",
+											"pm.environment.set(\"FirstName\", firstName());",
+											"",
+											"function lastName() {",
+											"    let lastName = [\"Marins\", \"Silva\", \"Oliveira\", \"Santos\", \"de Deus\", \"Moura\", \"Martins\", \"Araujo\"];",
+											"    let randomItem = lastName[Math.floor(Math.random() * lastName.length)];",
+											"    return randomItem",
+											"}",
+											"pm.environment.set(\"LastName\", lastName());",
+											"",
+											"pm.environment.set(\"fullName\", pm.environment.get(\"FirstName\") + \" \" + pm.environment.get(\"LastName\"));",
+											"",
+											"",
+											"function providerMail() {",
+											"    let providerMail = [\"@gmail.com\", \"@yahoo.com.br\", \"@outlook.com\", \"@hotmail.com\", \"@dominio.com\"];",
+											"    let randomItem = providerMail[Math.floor(Math.random() * providerMail.length)];",
+											"    return randomItem",
+											"}",
+											"pm.environment.set(\"ProviderMail\", providerMail());",
+											"",
+											"pm.environment.set(\"Email\", pm.environment.get(\"FirstName\") + \".\" + pm.variables.replaceIn('{{$timestamp}}') + pm.environment.get(\"ProviderMail\"));",
+											"",
+											"const url = pm.environment.get(\"URL\") + \"/api/user/create\";",
+											"const options = {",
+											"    url: url,",
+											"    method: 'POST',",
+											"    header: {",
+											"        'Content-type': 'application/json',",
+											"        'Accept': '*/*'",
+											"    },",
+											"    body: {",
+											"        mode: 'application/json',",
+											"        raw: JSON.stringify({",
+											"            \"name\": pm.environment.get(\"fullName\"),",
+											"            \"email\": pm.environment.get(\"Email\"),",
+											"            \"telephone\": \"11999785241\",",
+											"            \"birth_date\": \"1995-07-13\",",
+											"            \"birth_city\": \"Curitiba\",",
+											"            \"companies\": [1]",
+											"        })",
+											"",
+											"    }",
+											"}",
+											"pm.sendRequest(options, (err, response) => {",
+											"    if (err) {",
+											"        console.error(\"Error getting user data:\", err);",
+											"    } else {",
+											"        pm.environment.set(\"id_user_delete\", response.json().id_user);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response time is less than 200ms\", function () {",
+											"    pm.expect(pm.response.responseTime).to.be.below(200);",
+											"});",
+											"",
+											"const response = pm.response.json();",
+											"pm.test(\"Validate response have message success delete\", function () {",
+											"    pm.expect(pm.environment.get(\"msgDeleteSuccess\")).to.eql(response.message);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/api/user/{{id_user_delete}}/delete",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"user",
+										"{{id_user_delete}}",
+										"delete"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "deleteUserFail",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Fail request\", function () {",
+											"    pm.response.to.have.status(400);",
+											"});",
+											"",
+											"pm.test(\"Validate message when body is not correct\", function(){",
+											"    pm.expect(pm.response.json().message).to.eql(\"unable to delete data!\");",
+											"})"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/api/user/999999999999/delete",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"user",
+										"999999999999",
+										"delete"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "sendPing",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"const response = pm.response.json();",
+							"pm.test(\"Validate response have message: home\", function () {",
+							"    pm.expect(\"home\").to.eql(response.msg);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{URL}}",
+					"host": [
+						"{{URL}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
