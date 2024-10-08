@@ -1,6 +1,6 @@
 import userCRUD from "../support/pageObjects/UserCRUD.page"
 
-describe('Sign up new user ', () => {
+describe('Read user info ', () => {
   beforeEach(() => {
     cy.visit('/')
     userCRUD.openSignUpForm();
